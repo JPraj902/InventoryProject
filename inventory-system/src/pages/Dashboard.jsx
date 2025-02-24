@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/card';
-import { Users, Package, FileText, ArrowUpRight } from 'lucide-react';
+import { Users, Package, FileText } from 'lucide-react';
 
 const DashboardCard = ({ title, value, description, icon: Icon, trend }) => (
   <Card className="hover:shadow-lg transition-shadow">
@@ -10,11 +10,6 @@ const DashboardCard = ({ title, value, description, icon: Icon, trend }) => (
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <div className="flex items-center space-x-2">
             <h2 className="text-3xl font-bold">{value}</h2>
-            {trend && (
-              <span className="flex items-center text-sm font-medium text-green-600">
-                {trend}% <ArrowUpRight className="h-4 w-4 ml-1" />
-              </span>
-            )}
           </div>
           <p className="text-sm text-gray-600">{description}</p>
         </div>
@@ -33,36 +28,46 @@ const Dashboard = () => {
     activeUsers: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch PCS and Bag counts simultaneously
         const [pcsResponse, bagResponse] = await Promise.all([
           fetch('http://localhost:5000/api/pcs/count'),
           fetch('http://localhost:5000/api/bag/count'),
         ]);
 
-        if (!pcsResponse.ok) throw new Error(`PCS API error: ${pcsResponse.status}`);
-        if (!bagResponse.ok) throw new Error(`Bag API error: ${bagResponse.status}`);
+        // Check for errors
+        if (!pcsResponse.ok) throw new Error(`PCS API error: ${pcsResponse.statusText}`);
+        if (!bagResponse.ok) throw new Error(`Bag API error: ${bagResponse.statusText}`);
 
-        const [pcsData, bagData] = await Promise.all([
-          pcsResponse.json(),
-          bagResponse.json(),
-        ]);
+        // Parse the responses
+        const [pcsData, bagData] = await Promise.all([pcsResponse.json(), bagResponse.json()]);
 
+        // Update stats
         setStats({
           pcsCount: pcsData.count || 0,
           bagCount: bagData.count || 0,
           activeUsers: 5, 
         });
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
+
+    const interval = setInterval(fetchDashboardData, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -75,10 +80,12 @@ const Dashboard = () => {
 
   return (
     <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-      </div>
-
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <DashboardCard
           title="Total PCS Entries"

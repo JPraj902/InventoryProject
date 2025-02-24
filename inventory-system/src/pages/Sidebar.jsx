@@ -10,8 +10,8 @@ const Sidebar = ({ isOpen }) => {
       </div>
       <nav className="mt-4 space-y-1">
         <SidebarLink to="/dashboard" Icon={LayoutDashboard} label="Dashboard" />
-        <SidebarLink to="/function-a" Icon={Package} label="Function A" />
-        <SidebarLink to="/function-b" Icon={FileText} label="Function B" />
+        <SidebarLink to="/function-a" Icon={Package} label="Shade Net" />
+        <SidebarLink to="/function-b" Icon={FileText} label="Packing Net" />
         <SidebarLink to="/role-management" Icon={Users} label="Role Management" />
       </nav>
     </aside>

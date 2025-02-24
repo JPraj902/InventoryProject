@@ -95,7 +95,7 @@ body {
 .card {
   background: var(--foreground);
   border-radius: 0.75rem;
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--border);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
